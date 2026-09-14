@@ -13,7 +13,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 base_dir = r"c:\Users\teacher.TICNET\Desktop\06Laragon_ip_url"
 
 # 欠席者リスト（番号または名前の一部で指定可能）
-ABSENT_STUDENTS = ["06", "菊池", "10", "蔣心悦"]
+ABSENT_STUDENTS = ["06", "菊池", "10", "蔣心悦", "23", "柳澤"]
 
 def parse_name(item_name):
     name_part = os.path.splitext(item_name)[0]
@@ -35,7 +35,6 @@ def clean_url(raw_url):
     return raw_url
 
 def encode_url_if_needed(url):
-    """日本語などのノンASCII文字を含むURLを安全にエンコードする"""
     try:
         parts = urllib.parse.urlsplit(url)
         path = urllib.parse.quote(parts.path)
@@ -46,7 +45,6 @@ def encode_url_if_needed(url):
         return url
 
 def check_url_health(url, timeout=2.0):
-    """URLの疎通状態（アクセスチェック）を行う"""
     if not url:
         return {"status": "error", "code": 0, "msg": "URL未設定"}
     try:
