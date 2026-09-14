@@ -1,1 +1,1 @@
-http://localhost/tetris_multiplayer/index.php
+http://10.204.6.81/tetris/
