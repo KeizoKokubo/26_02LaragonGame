@@ -1,1 +1,1 @@
-https://10.204.6.132/LaragonGame/
+http://10.204.6.132/LaragonGame/
