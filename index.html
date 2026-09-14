@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laragon 学生作品一覧 & IPポータル</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #38bdf8;
+            --accent-indigo: #818cf8;
+            --accent-emerald: #34d399;
+            --accent-amber: #fbbf24;
+            --accent-rose: #fb7185;
+            --gradient-hero: linear-gradient(135deg, #0284c7 0%, #6366f1 50%, #8b5cf6 100%);
+            --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* Header & Hero */
+        .hero {
+            background: var(--gradient-hero);
+            padding: 44px 24px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-size: 2.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.05rem;
+            opacity: 0.95;
+            font-weight: 500;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        /* Stats Bar */
+        .stats-container {
+            max-width: 1240px;
+            margin: -32px auto 28px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            background: rgba(30, 41, 59, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-card);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-icon {
+            font-size: 1.8rem;
+            background: rgba(255, 255, 255, 0.08);
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-blue);
+            line-height: 1.2;
+        }
+
+        .stat-lbl {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Controls Section (Search & Filter) */
+        .controls-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-card);
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag-btn {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.83rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn:hover, .tag-btn.active {
+            background: var(--accent-blue);
+            color: #0f172a;
+            border-color: var(--accent-blue);
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: flex;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--bg-card);
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        /* Cards Grid */
+        .grid-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .student-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+            box-shadow: var(--shadow-card);
+            position: relative;
+        }
+
+        .student-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 16px 30px -10px rgba(56, 189, 248, 0.25);
+        }
+
+        /* Absent (Disabled) Card Style */
+        .student-card.absent {
+            opacity: 0.55;
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(251, 113, 133, 0.3);
+            filter: grayscale(40%);
+        }
+
+        .student-card.absent:hover {
+            transform: none;
+            box-shadow: var(--shadow-card);
+            border-color: rgba(251, 113, 133, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .student-badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-blue);
+            font-weight: 800;
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .multi-badge {
+            background: rgba(129, 140, 248, 0.2);
+            color: var(--accent-indigo);
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-left: 6px;
+        }
+
+        .absent-badge {
+            background: rgba(251, 113, 133, 0.2);
+            color: var(--accent-rose);
+            font-weight: 800;
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .student-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .folder-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-top: 4px;
+            word-break: break-all;
+        }
+
+        .card-body {
+            margin: 16px 0;
+            flex-grow: 1;
+        }
+
+        /* URL Item Box */
+        .url-item {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .url-item.health-online {
+            border-left: 4px solid var(--accent-emerald);
+        }
+
+        .url-item.health-error {
+            border-left: 4px solid var(--accent-rose);
+            background: rgba(251, 113, 133, 0.04);
+        }
+
+        .url-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .url-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Health status badge */
+        .health-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .health-badge.online {
+            background: rgba(52, 211, 153, 0.15);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        .health-badge.error {
+            background: rgba(251, 113, 133, 0.15);
+            color: var(--accent-rose);
+            border: 1px solid rgba(251, 113, 133, 0.3);
+        }
+
+        .url-text {
+            font-family: monospace;
+            font-size: 0.88rem;
+            color: var(--text-primary);
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .url-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-launch-single {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex: 1;
+            padding: 9px 14px;
+            background: var(--accent-blue);
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 0.88rem;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-launch-single:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-launch-single.warning {
+            background: rgba(251, 113, 133, 0.2);
+            color: var(--accent-rose);
+            border: 1px solid rgba(251, 113, 133, 0.4);
+        }
+
+        .btn-launch-single.warning:hover {
+            background: var(--accent-rose);
+            color: #ffffff;
+        }
+
+        .btn-launch-single.disabled {
+            background: #334155 !important;
+            color: #64748b !important;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn-copy-small {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy-small:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: var(--accent-blue);
+        }
+
+        .notes-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px dashed rgba(251, 191, 36, 0.3);
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            font-size: 0.85rem;
+            color: #fde68a;
+            margin-top: 10px;
+        }
+
+        .no-url-badge {
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Table View */
+        .table-view {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .student-table th {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 16px 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .student-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.93rem;
+            vertical-align: middle;
+        }
+
+        .student-table tr.absent-row {
+            opacity: 0.5;
+            background: rgba(251, 113, 133, 0.03);
+        }
+
+        .student-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--accent-emerald);
+            color: #0f172a;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <h1 class="hero-title">Laragon 学生作品 & IPアクセス ポータル</h1>
+        <p class="hero-subtitle">全作品のアクセス自動診断機能付き！ワンクリックで各学生の複数作品へジャンプできます</p>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🎓</div>
+                <div>
+                    <div class="stat-val" id="statTotal">0</div>
+                    <div class="stat-lbl">対象学生数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🟢</div>
+                <div>
+                    <div class="stat-val" id="statOnline" style="color: var(--accent-emerald);">0</div>
+                    <div class="stat-lbl">接続正常 (OK)</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔴</div>
+                <div>
+                    <div class="stat-val" id="statError" style="color: var(--accent-rose);">0</div>
+                    <div class="stat-lbl">アクセスエラー</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div>
+                    <div class="stat-val" id="statMulti">0</div>
+                    <div class="stat-lbl">複数作品所持数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💤</div>
+                <div>
+                    <div class="stat-val" id="statAbsent" style="color: var(--accent-amber);">0</div>
+                    <div class="stat-lbl">本日欠席</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="container">
+        
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <!-- Search Box -->
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="学生名、番号、IPアドレス、フォルダ名で検索..." oninput="filterData()">
+            </div>
+
+            <!-- Filter Tags -->
+            <div class="filter-tags">
+                <button class="tag-btn active" onclick="setFilter('all', this)">すべて</button>
+                <button class="tag-btn" onclick="setFilter('online', this)">接続OK 🟢</button>
+                <button class="tag-btn" onclick="setFilter('error', this)">アクセスエラー 🔴</button>
+                <button class="tag-btn" onclick="setFilter('multi', this)">複数作品所持 📁</button>
+                <button class="tag-btn" onclick="setFilter('present', this)">出席のみ 🟢</button>
+                <button class="tag-btn" onclick="setFilter('absent', this)">欠席のみ 💤</button>
+            </div>
+
+            <!-- View Switcher -->
+            <div class="view-switcher">
+                <button class="view-btn active" id="btnGridView" onclick="switchView('grid')">
+                    <span>🎴</span> カード
+                </button>
+                <button class="view-btn" id="btnTableView" onclick="switchView('table')">
+                    <span>📑</span> リスト
+                </button>
+            </div>
+        </div>
+
+        <!-- Cards View -->
+        <div id="gridView" class="grid-view"></div>
+
+        <!-- Table View -->
+        <div id="tableView" class="table-view">
+            <table class="student-table">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">番号</th>
+                        <th style="width: 160px;">氏名</th>
+                        <th style="width: 150px;">フォルダ情報</th>
+                        <th>作品URL & 疎通診断</th>
+                        <th style="width: 140px;">備考</th>
+                        <th style="width: 180px; text-align: center;">アクション</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">クリップボードにコピーしました！</div>
+
+    <script>
+        const rawStudentsData = [{"id": "01_上杉 尚俊", "num": "01", "name": "上杉 尚俊", "folder_name": "01_上杉 尚俊", "folders": ["01_上杉 尚俊"], "urls": [{"label": "作品リンク (URL.txt)", "url": "http://10.204.6.198/Game", "source_file": "URL.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "02_太田 誠路", "num": "02", "name": "太田 誠路", "folder_name": "02_太田 誠路", "folders": ["02_太田 誠路"], "urls": [{"label": "作品リンク (URL.txt)", "url": "http://10.204.6.59/janken/janken.html", "source_file": "URL.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "03_大谷あやめ", "num": "03", "name": "大谷あやめ", "folder_name": "", "folders": [], "urls": [{"label": "作品リンク (03_大谷あやめ.txt)", "url": "http://10.204.6.71/BlackjackGame", "source_file": "03_大谷あやめ.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "05_風戸 晄", "num": "05", "name": "風戸 晄", "folder_name": "", "folders": [], "urls": [{"label": "作品リンク (05_風戸 晄.txt)", "url": "http://10.204.6.84/PackMan", "source_file": "05_風戸 晄.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "06_菊池駿佑", "num": "06", "name": "菊池駿佑", "folder_name": "06-菊池駿佑", "folders": ["06-菊池駿佑"], "urls": [{"label": "作品リンク (IP.txt)", "url": "http://10.204.6.74/README6", "source_file": "IP.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続タイムアウト"}}], "notes": [{"title": "操作方法.txt", "content": "マウス左クリック"}], "local_files": [], "is_absent": true}, {"id": "07_小池遼", "num": "07", "name": "小池遼", "folder_name": "07_小池遼", "folders": ["07_小池遼"], "urls": [{"label": "最新版 (URL 最新版.txt)", "url": "http://10.204.6.106/", "source_file": "URL 最新版.txt", "is_latest": true, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}, {"label": "作品リンク (URL.txt)", "url": "http://10.204.6.147/ball/", "source_file": "URL.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続タイムアウト"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "08_作田颯斗", "num": "08", "name": "作田颯斗", "folder_name": "08_作田颯斗", "folders": ["08_作田颯斗"], "urls": [{"label": "作品リンク (LalagonGame.txt)", "url": "http://10.204.6.92/LalagonGame/", "source_file": "LalagonGame.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "09_佐藤瑛太", "num": "09", "name": "佐藤瑛太", "folder_name": "", "folders": [], "urls": [{"label": "作品リンク (09_佐藤瑛太.txt)", "url": "http://10.204.6.104/HTMLgame/", "source_file": "09_佐藤瑛太.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "10_蔣心悦", "num": "10", "name": "蔣心悦", "folder_name": "10_蔣心悦", "folders": ["10_蔣心悦"], "urls": [{"label": "作品リンク (10蔣心悦.txt)", "url": "http://10.204.6.82/Web/", "source_file": "10蔣心悦.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続タイムアウト"}}], "notes": [], "local_files": [], "is_absent": true}, {"id": "11_菅原陽琉", "num": "11", "name": "菅原陽琉", "folder_name": "11_菅原陽琉", "folders": ["11_菅原陽琉"], "urls": [{"label": "作品リンク (URL.txt)", "url": "http://10.204.6.97/", "source_file": "URL.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "12_須藤連", "num": "12", "name": "須藤連", "folder_name": "12_須藤連", "folders": ["12_須藤連"], "urls": [{"label": "作品リンク (10.204.6.104めっちゃ早い.txt)", "url": "http://10.204.6.104/めっちゃ早い", "source_file": "10.204.6.104めっちゃ早い.txt", "is_latest": false, "health": {"status": "error", "code": 404, "msg": "HTTP 404 エラー"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "13_THAR LA YAUNG", "num": "13", "name": "THAR LA YAUNG", "folder_name": "", "folders": [], "urls": [{"label": "作品リンク (13_THAR LA YAUNG.txt)", "url": "https://10.204.6.132/LaragonGame/", "source_file": "13_THAR LA YAUNG.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続エラー ([SSL: WRONG_VERSION_NUMBER] wrong version number (_ssl.c:1010))"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "15_竹中", "num": "15", "name": "竹中", "folder_name": "15_竹中", "folders": ["15_竹中"], "urls": [{"label": "作品リンク (ぴ.txt)", "url": "http://10.204.6.63/15_竹中佑真２", "source_file": "ぴ.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続タイムアウト"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "15_髙橋花", "num": "15", "name": "髙橋花", "folder_name": "15_髙橋花", "folders": ["15_髙橋花"], "urls": [{"label": "作品リンク (IP.txt)", "url": "http://10.204.6.98/Marika/", "source_file": "IP.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "16_田中栄吉", "num": "16", "name": "田中栄吉", "folder_name": "16_田中栄吉", "folders": ["16_田中栄吉"], "urls": [{"label": "作品リンク (Game.txt)", "url": "http://10.204.6.75/ai/", "source_file": "Game.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "17_田中壮", "num": "17", "name": "田中壮", "folder_name": "17_田中壮", "folders": ["17_田中壮"], "urls": [{"label": "作品リンク (ip.txt)", "url": "http://localhost/tetris_multiplayer/index.php", "source_file": "ip.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続タイムアウト"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "18_田中陽太", "num": "18", "name": "田中陽太", "folder_name": "18_田中陽太", "folders": ["18_田中陽太"], "urls": [{"label": "最新版 (18_田中陽太_最新.txt)", "url": "http://10.204.6.84/WebGameTank/", "source_file": "18_田中陽太_最新.txt", "is_latest": true, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}, {"label": "作品リンク (18_田中陽太.txt)", "url": "http://10.204.6.203/WebGame", "source_file": "18_田中陽太.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続タイムアウト"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "19_仲元寺 瑛大", "num": "19", "name": "仲元寺 瑛大", "folder_name": "19_仲元寺 瑛大", "folders": ["19_仲元寺 瑛大"], "urls": [], "notes": [], "local_files": [], "is_absent": false}, {"id": "20_三浦翔馬", "num": "20", "name": "三浦翔馬", "folder_name": "20_三浦翔馬", "folders": ["20_三浦翔馬"], "urls": [{"label": "作品リンク (20_三浦翔馬.txt)", "url": "http://10.204.6.159/RussianRoulette_info", "source_file": "20_三浦翔馬.txt", "is_latest": false, "health": {"status": "error", "code": 404, "msg": "HTTP 404 エラー"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "21_村田葵", "num": "21", "name": "村田葵", "folder_name": "21_村田葵", "folders": ["21_村田葵"], "urls": [], "notes": [], "local_files": [], "is_absent": false}, {"id": "23_柳澤結太", "num": "23", "name": "柳澤結太", "folder_name": "23_柳澤結太", "folders": ["23_柳澤結太"], "urls": [{"label": "作品リンク (柳澤結太.txt)", "url": "http://10.204.6.74/P2P/", "source_file": "柳澤結太.txt", "is_latest": false, "health": {"status": "error", "code": 0, "msg": "接続タイムアウト"}}], "notes": [], "local_files": ["P2P\\index.html"], "is_absent": false}, {"id": "24_山田基心", "num": "24", "name": "山田基心", "folder_name": "24_山田基心", "folders": ["24_山田基心"], "urls": [{"label": "作品リンク (Link.txt)", "url": "http://10.204.6.76/htmlFinish", "source_file": "Link.txt", "is_latest": false, "health": {"status": "error", "code": 404, "msg": "HTTP 404 エラー"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "25_渡邊亮二", "num": "25", "name": "渡邊亮二", "folder_name": "25_渡邊亮二", "folders": ["25_渡邊亮二"], "urls": [{"label": "作品リンク (IP.txt)", "url": "http://10.204.6.81/Rizunu/", "source_file": "IP.txt", "is_latest": false, "health": {"status": "online", "code": 200, "msg": "HTTP 200 OK"}}], "notes": [], "local_files": [], "is_absent": false}, {"id": "上杉尚駿", "num": "", "name": "上杉尚駿", "folder_name": "", "folders": [], "urls": [{"label": "作品リンク (上杉尚駿.txt)", "url": "http://10.204.6.132/sinnki_info/index.html", "source_file": "上杉尚駿.txt", "is_latest": false, "health": {"status": "error", "code": 404, "msg": "HTTP 404 エラー"}}], "notes": [], "local_files": [], "is_absent": false}];
+
+        let currentFilter = 'all';
+
+        function initStats() {
+            const total = rawStudentsData.length;
+            let absentCount = 0;
+            let onlineCount = 0;
+            let errorCount = 0;
+            let multiCount = 0;
+
+            rawStudentsData.forEach(st => {
+                if (st.is_absent) absentCount++;
+                if (st.urls.length > 1) multiCount++;
+
+                st.urls.forEach(u => {
+                    if (u.health && u.health.status === 'online') onlineCount++;
+                    else errorCount++;
+                });
+            });
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statOnline').textContent = onlineCount;
+            document.getElementById('statError').textContent = errorCount;
+            document.getElementById('statMulti').textContent = multiCount;
+            document.getElementById('statAbsent').textContent = absentCount;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("URLをコピーしました！");
+            }).catch(err => {
+                showToast("コピーに失敗しました");
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function renderGrid(data) {
+            const container = document.getElementById('gridView');
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>該当する作品が見つかりませんでした</h3>
+                        <p>条件を変更して検索してください</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            data.forEach(st => {
+                const isMulti = st.urls.length > 1;
+
+                html += `
+                    <div class="student-card ${st.is_absent ? 'absent' : ''}">
+                        <div>
+                            <div class="card-header">
+                                <div>
+                                    <span class="student-badge">#${st.num || '---'}</span>
+                                    ${isMulti ? `<span class="multi-badge">📁 複数作品 (${st.urls.length})</span>` : ''}
+                                    ${st.is_absent ? '<span class="absent-badge">💤 本日欠席</span>' : ''}
+                                    <h2 class="student-name" style="margin-top: 6px;">${escapeHtml(st.name)}</h2>
+                                </div>
+                            </div>
+                            
+                            ${st.folder_name ? `<div class="folder-badge">📁 ${escapeHtml(st.folder_name)}</div>` : ''}
+
+                            <div class="card-body">
+                                ${st.urls.length > 0 ? st.urls.map((u, idx) => {
+                                    const isOnline = u.health && u.health.status === 'online';
+                                    const healthMsg = u.health ? u.health.msg : '未確認';
+
+                                    return `
+                                        <div class="url-item ${isOnline ? 'health-online' : 'health-error'}">
+                                            <div class="url-item-header">
+                                                <span class="url-label">
+                                                    ${isMulti ? `🎮 作品${idx + 1}: ` : ''}${escapeHtml(u.label)}
+                                                </span>
+                                                <span class="health-badge ${isOnline ? 'online' : 'error'}">
+                                                    ${isOnline ? '🟢 接続OK' : '🔴 アクセスエラー'} (${escapeHtml(healthMsg)})
+                                                </span>
+                                            </div>
+                                            <div class="url-text">${escapeHtml(u.url)}</div>
+
+                                            <div class="url-actions">
+                                                ${st.is_absent ? `
+                                                    <a href="javascript:void(0)" class="btn-launch-single disabled">
+                                                        本日欠席 (無効) 💤
+                                                    </a>
+                                                ` : isOnline ? `
+                                                    <a href="${escapeHtml(u.url)}" target="_blank" class="btn-launch-single">
+                                                        ${isMulti ? `作品${idx + 1}を開く 🚀` : '作品を開く 🚀'}
+                                                    </a>
+                                                ` : `
+                                                    <a href="${escapeHtml(u.url)}" target="_blank" class="btn-launch-single warning">
+                                                        ⚠️ アクセスエラー (それでも試す ↗️)
+                                                    </a>
+                                                `}
+                                                <button class="btn-copy-small" onclick="copyToClipboard('${escapeHtml(u.url)}')" title="URLをコピー">
+                                                    📋 コピー
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('') : `
+                                    <div class="no-url-badge">URL / IP 未登録</div>
+                                `}
+
+                                ${st.notes.map(n => `
+                                    <div class="notes-box">
+                                        <strong>💡 ${escapeHtml(n.title)}:</strong> ${escapeHtml(n.content)}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">該当するデータがありません</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(st => {
+                html += `
+                    <tr class="${st.is_absent ? 'absent-row' : ''}">
+                        <td><span class="student-badge">#${st.num || '--'}</span></td>
+                        <td style="font-weight: 700; color: var(--text-primary);">
+                            ${escapeHtml(st.name)}
+                            ${st.is_absent ? '<span class="absent-badge" style="font-size: 0.7rem; padding: 2px 6px; margin-left: 4px;">欠席</span>' : ''}
+                        </td>
+                        <td><span style="font-size: 0.85rem; color: var(--text-secondary);">${escapeHtml(st.folder_name || '---')}</span></td>
+                        <td>
+                            ${st.urls.map((u, idx) => {
+                                const isOnline = u.health && u.health.status === 'online';
+                                const healthMsg = u.health ? u.health.msg : '未確認';
+
+                                return `
+                                    <div style="margin-bottom: 8px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span class="health-badge ${isOnline ? 'online' : 'error'}" style="font-size: 0.68rem; padding: 1px 6px;">
+                                                ${isOnline ? '🟢 OK' : '🔴 ERROR'}
+                                            </span>
+                                            ${!st.is_absent ? `
+                                                <a href="${escapeHtml(u.url)}" target="_blank" style="color: var(--accent-blue); text-decoration: none; font-family: monospace; font-weight: bold;">
+                                                    ${escapeHtml(u.url)}
+                                                </a>
+                                            ` : `
+                                                <span style="color: var(--text-muted); font-family: monospace; text-decoration: line-through;">${escapeHtml(u.url)}</span>
+                                            `}
+                                            <span style="font-size: 0.75rem; color: var(--text-muted);">(${escapeHtml(u.label)} - ${escapeHtml(healthMsg)})</span>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') || '<span style="color: var(--text-muted);">未登録</span>'}
+                        </td>
+                        <td style="font-size: 0.85rem; color: var(--accent-amber);">
+                            ${st.notes.map(n => `<div>💡 ${escapeHtml(n.content)}</div>`).join('')}
+                        </td>
+                        <td style="text-align: center;">
+                            ${st.is_absent ? `
+                                <span style="font-size: 0.8rem; color: var(--accent-rose); font-weight: bold;">💤 本日欠席</span>
+                            ` : st.urls.length > 0 ? st.urls.map((u, idx) => {
+                                const isOnline = u.health && u.health.status === 'online';
+                                return `
+                                    <a href="${escapeHtml(u.url)}" target="_blank" style="display: inline-block; margin: 2px; padding: 5px 10px; background: ${isOnline ? 'var(--accent-blue)' : 'rgba(251, 113, 133, 0.2)'}; color: ${isOnline ? '#0f172a' : 'var(--accent-rose)'}; border-radius: 6px; font-weight: 700; text-decoration: none; font-size: 0.78rem;">
+                                        ${st.urls.length > 1 ? `作品${idx + 1} 🚀` : '開く 🚀'}
+                                    </a>
+                                `;
+                            }).join('') : '---'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function filterData() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            const filtered = rawStudentsData.filter(st => {
+                if (currentFilter === 'present' && st.is_absent) return false;
+                if (currentFilter === 'absent' && !st.is_absent) return false;
+                if (currentFilter === 'multi' && st.urls.length <= 1) return false;
+                if (currentFilter === 'online' && !st.urls.some(u => u.health && u.health.status === 'online')) return false;
+                if (currentFilter === 'error' && !st.urls.some(u => u.health && u.health.status === 'error')) return false;
+
+                if (!query) return true;
+
+                const matchNum = (st.num || '').toLowerCase().includes(query);
+                const matchName = (st.name || '').toLowerCase().includes(query);
+                const matchFolder = (st.folder_name || '').toLowerCase().includes(query);
+                const matchUrl = st.urls.some(u => u.url.toLowerCase().includes(query) || u.label.toLowerCase().includes(query));
+                const matchNotes = st.notes.some(n => n.content.toLowerCase().includes(query) || n.title.toLowerCase().includes(query));
+
+                return matchNum || matchName || matchFolder || matchUrl || matchNotes;
+            });
+
+            renderGrid(filtered);
+            renderTable(filtered);
+        }
+
+        function setFilter(filterType, btnEl) {
+            currentFilter = filterType;
+            document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+            btnEl.classList.add('active');
+            filterData();
+        }
+
+        function switchView(viewType) {
+            const gridEl = document.getElementById('gridView');
+            const tableEl = document.getElementById('tableView');
+            const btnGrid = document.getElementById('btnGridView');
+            const btnTable = document.getElementById('btnTableView');
+
+            if (viewType === 'grid') {
+                gridEl.style.display = 'grid';
+                tableEl.style.display = 'none';
+                btnGrid.classList.add('active');
+                btnTable.classList.remove('active');
+            } else {
+                gridEl.style.display = 'none';
+                tableEl.style.display = 'block';
+                btnGrid.classList.remove('active');
+                btnTable.classList.add('active');
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initStats();
+            filterData();
+        });
+    </script>
+</body>
+</html>

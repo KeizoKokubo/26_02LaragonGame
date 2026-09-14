@@ -1,0 +1,344 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nature Defense - 防衛ゲーム & リアルタイムランキング</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- ================= 1. タイトル画面 ================= -->
+        <section id="titleScreen" class="screen">
+            <div class="title-screen-content">
+                <h1 class="game-title">NATURE DEFENSE</h1>
+                <p class="title-tagline">〜 少ないタワーで防衛して最大効率スコアを目指そう 〜</p>
+
+                <div class="title-main-grid">
+                    <!-- ルール概要 -->
+                    <div class="title-card">
+                        <div>
+                            <h3>📖 ゲーム概要 & 操作方法</h3>
+                            <ul class="title-overview-list">
+                                <li><strong>タワーの設置:</strong> 右パネルでタワーを選び、<strong>マップ上の指定された空地（土台マーク）をクリック</strong>して設置します。</li>
+                                <li><strong>プレイヤー直接迎撃:</strong> マップ上の<strong>敵をクリックして直接攻撃</strong>したり、強力な<strong>「⚡天罰の落雷」スキル</strong>で自ら防衛支援できます！</li>
+                                <li><strong>タワー節約ボーナス:</strong> 少ないタワーで生き延びるほどスコア倍率（最大2.5倍）が跳ね上がります！</li>
+                                <li><strong>3段階の進化:</strong> タワーをLv.3で「第2進化」、Lv.9で「★最終第3進化」へと覚醒させることができます。</li>
+                            </ul>
+                        </div>
+                        <button id="btnOpenGuideTitle" class="btn-open-guide">
+                            📖 詳しい操作方法・遊び方・進化一覧を見る
+                        </button>
+                    </div>
+
+                    <!-- タイトル画面リーダーボード -->
+                    <div class="title-card">
+                        <div class="ranking-header-row">
+                            <h3>🏆 歴代ハイスコア (TOP 10)</h3>
+                            <span class="live-badge">● LIVE AUTO REFRESH</span>
+                        </div>
+                        <div id="titleRankingList" class="ranking-list">
+                            <!-- JS動的読み込み -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- プレイヤー名入力 & ゲームスタート -->
+                <div class="title-actions">
+                    <div class="title-name-input-group">
+                        <label for="titlePlayerName">プレイヤー名:</label>
+                        <input type="text" id="titlePlayerName" class="title-input" maxlength="20" placeholder="森の防衛士" value="森の防衛士">
+                    </div>
+                    <button id="btnStartGame" class="btn-primary-large">ゲームスタート 🛡️</button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= 2. ゲームプレイ画面 ================= -->
+        <section id="gamePlayScreen" class="screen hidden">
+            <!-- ヘッダー・ステータス -->
+            <header class="game-header">
+                <div class="header-left">
+                    <h2>NATURE DEFENSE</h2>
+                    <button id="btnOpenGuideHeader" class="btn-header-guide">📖 遊び方・操作方法</button>
+                    <button id="btnSoundToggle" class="btn-sound-toggle">🔊 音声: ON</button>
+                    <button id="btnQuitGame" class="btn-quit-game" title="現在の成績でゲームを終了してリザルトへ進みます">
+                        🏳️ ここで終了する
+                    </button>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-box">
+                        <span class="stat-label">ゴールド</span>
+                        <span class="stat-val gold">🪙 <span id="uiGold">300</span></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">ライフ</span>
+                        <span class="stat-val lives">❤️ <span id="uiLives">20</span></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">Wave</span>
+                        <span class="stat-val wave"><span id="uiWave">0</span></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">設置タワー</span>
+                        <span class="stat-val"><span id="uiTowersUsed">0</span></span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">効率倍率</span>
+                        <span class="stat-val gold" id="uiMultiplier">1.00x</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">現在スコア</span>
+                        <span class="stat-val score" id="uiScore">0</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- メインゲームエリア -->
+            <main class="game-layout">
+                <div class="canvas-wrapper">
+                    <canvas id="gameCanvas"></canvas>
+                </div>
+
+                <aside class="sidebar">
+                    <!-- プレイヤー直接迎撃スキルパネル -->
+                    <div class="player-skill-panel">
+                        <div class="skill-header">
+                            <h3>⚡ プレイヤー直接迎撃</h3>
+                            <span id="skillStatusText" class="skill-status-tag">⚡ READY</span>
+                        </div>
+                        <button id="btnPlayerSkill" class="btn-player-skill ready">
+                            <span class="skill-btn-title">⚡ 天罰の落雷 (範囲一撃爆撃)</span>
+                            <div class="skill-progress-bar">
+                                <div id="skillCooldownProgress" class="skill-progress-fill"></div>
+                            </div>
+                        </button>
+                        <p class="skill-subtext">※マップ上の敵をクリックして<strong>通常タップ攻撃（小ダメージ）</strong>も可能！</p>
+                    </div>
+
+                    <!-- タワー操作パネル -->
+                    <div class="control-panel">
+                        <h3>タワー建設</h3>
+                        <div class="tower-select-grid">
+                            <button class="tower-select-btn" data-tower="gatling">
+                                <span class="tower-icon">🏹</span>
+                                <span class="tower-name">エルフ弓</span>
+                                <span class="tower-cost">🪙100</span>
+                            </button>
+                            <button class="tower-select-btn" data-tower="cannon">
+                                <span class="tower-icon">🪨</span>
+                                <span class="tower-name">投石機</span>
+                                <span class="tower-cost">🪙160</span>
+                            </button>
+                            <button class="tower-select-btn" data-tower="laser">
+                                <span class="tower-icon">🔮</span>
+                                <span class="tower-name">ルーン魔術</span>
+                                <span class="tower-cost">🪙220</span>
+                            </button>
+                        </div>
+                        <div id="buildModeHint" class="build-mode-hint">
+                            <span class="hint-idle">ℹ️ タワーを選んで土台に設置、または<strong>敵を直接クリックして防衛支援！</strong></span>
+                        </div>
+
+                        <div id="towerDetailPanel" class="tower-detail-panel">
+                            <p class="placeholder-text">タワーを選択すると強化・進化・売却ができます<br><small>※マップ上の敵をクリックして直接迎撃も可能！</small></p>
+                        </div>
+
+                        <div class="wave-controls">
+                            <div id="waveStatusBadge" class="status-badge idle">待機中</div>
+                            <button id="btnStartWave" class="start-wave-btn">次のWaveを開始 ⚔️</button>
+                        </div>
+                    </div>
+
+                    <!-- プレイ中ランキングパネル -->
+                    <div class="ranking-panel">
+                        <div class="ranking-header-row">
+                            <h3>🏆 TOP 10 ライブ順位</h3>
+                            <span class="live-badge">● 自動同期中</span>
+                        </div>
+                        <div id="inGameRankingList" class="ranking-list">
+                            <!-- JSで動的生成 -->
+                        </div>
+                    </div>
+                </aside>
+            </main>
+        </section>
+
+
+        <!-- ================= 3. リザルト画面 ================= -->
+        <section id="resultScreen" class="screen hidden">
+            <div class="result-screen-content">
+                <div class="result-card">
+                    <h2 id="resultTitle" class="result-title gameover">GAME OVER</h2>
+                    <p id="resultSubtitle" class="result-subtitle">防衛ラインが突破されました</p>
+
+                    <div class="result-player-badge">
+                        プレイヤー: <strong id="resPlayerNameDisplay">森の防衛士</strong>
+                        <span class="auto-saved-tag">✓ スコア自動記録済み</span>
+                    </div>
+
+                    <div class="result-stats-table">
+                        <div class="result-row">
+                            <span>到達Wave数:</span>
+                            <strong id="resWave">0</strong>
+                        </div>
+                        <div class="result-row">
+                            <span>防衛タワー台数:</span>
+                            <strong id="resTowers">0 台</strong>
+                        </div>
+                        <div class="result-row">
+                            <span>撃破した敵数:</span>
+                            <strong id="resEnemies">0 体</strong>
+                        </div>
+                        <div class="result-row">
+                            <span>タワー節約効率倍率:</span>
+                            <strong id="resMultiplier">1.00x</strong>
+                        </div>
+                        <div class="result-row score-row">
+                            <span>最終獲得スコア:</span>
+                            <strong id="resFinalScore">0 pts</strong>
+                        </div>
+                    </div>
+
+                    <!-- 画面遷移ボタン -->
+                    <div class="result-navigation-btns">
+                        <button id="btnRetryGame" class="btn-restart">もう一度挑戦 🔄</button>
+                        <button id="btnBackToTitle" class="btn-to-title">タイトルへ戻る 🏠</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ================= 4. 詳しい遊び方ガイドモーダル ================= -->
+    <div id="guideModal" class="modal-overlay hidden">
+        <div class="guide-modal-content">
+            <div class="guide-modal-header">
+                <h2>📖 NATURE DEFENSE 完全攻略ガイド</h2>
+                <button id="btnCloseGuideModal" class="btn-close-modal">✕</button>
+            </div>
+            <div class="guide-modal-body">
+                <!-- 基本操作方法 -->
+                <div class="guide-section">
+                    <h4>🖱️ 基本操作方法（設置・直接迎撃・強化・進化）</h4>
+                    <p>
+                        1. <strong>タワーの設置方法:</strong> 右パネルでタワーアイコン（エルフ弓/投石機/魔術）をクリックして選択し、<strong>マップ上の指定された空地（土台マーク）をクリック</strong>するとタワーが設置されます。<br>
+                        2. <strong>プレイヤー直接迎撃（自分でも防衛）:</strong><br>
+                        &nbsp;&nbsp;・<strong>通常タップ攻撃:</strong> マップ上を歩く敵を直接クリックすると、クールダウンなしで小ダメージを与えられます！<br>
+                        &nbsp;&nbsp;・<strong>⚡ 天罰の落雷スキル:</strong> 右パネルのスキルボタンを押すと、最前線の敵集団に大ダメージ落雷を撃ち込みます（15秒クールダウン）。<br>
+                        3. <strong>タワーの強化・進化・売却:</strong> すでに設置したタワーをクリックすると、右パネルに「強化（進化タイミング時は『進化』）」および「売却」ボタンが表示されます。<br>
+                        4. <strong>選択の解除:</strong> 何もない空地をクリックするか「選択解除」ボタンを押すと、タワー選択が解除されます。
+                    </p>
+                </div>
+
+                <!-- 基本ルール -->
+                <div class="guide-section">
+                    <h4>🎯 基本ルール & 目標</h4>
+                    <p>
+                        曲がりくねった道から侵入してくる敵モンスターを迎撃し、森の拠点（ライフ初期20）を守り抜く防衛ゲームです。<br>
+                        スタートと同時にあなたの名前がランキングに登録され、プレイ中のスコアに応じてリアルタイムに順位が上昇します。
+                    </p>
+                </div>
+
+                <!-- スコアとタワー節約効率 -->
+                <div class="guide-section">
+                    <h4>📈 高スコアの秘訣（タワー節約ボーナス）</h4>
+                    <p>
+                        単に敵を倒すだけでなく、<strong>「どれだけ少ないタワーで防衛できるか」</strong>が得点の鍵となります。<br>
+                        到達Waveに対して設置タワー台数が少ないほど、<strong>最大2.5倍のスコア効率倍率ボーナス</strong>が常時乗算されます。
+                    </p>
+                </div>
+
+                <!-- タワーの3段階進化 -->
+                <div class="guide-section">
+                    <h4>🧬 タワーの種類と3段階進化</h4>
+                    <table class="guide-table">
+                        <thead>
+                            <tr>
+                                <th>タワー</th>
+                                <th>初期段階 (Lv.1〜2)</th>
+                                <th>第2進化 (Lv.3〜8)</th>
+                                <th>★最終第3進化 (Lv.9〜)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>🏹 エルフ弓</strong><br><small>🪙100 / 速射</small></td>
+                                <td>エルフの木の弓<br><small>威力7 / 秒間3.3発</small></td>
+                                <td>精霊の疾風弓<br><small>威力14 / 秒間4.6〜7.5発</small></td>
+                                <td>★神木の大聖弓<br><small>威力38 / 秒間8.5〜15発</small></td>
+                            </tr>
+                            <tr>
+                                <td><strong>🪨 投石機</strong><br><small>🪙160 / 範囲爆発</small></td>
+                                <td>投石器<br><small>威力25 / 爆風50px</small></td>
+                                <td>重装カタパルト<br><small>威力46 / 爆風68px</small></td>
+                                <td>★紅蓮のマグマ巨砲<br><small>威力115 / 爆風98px</small></td>
+                            </tr>
+                            <tr>
+                                <td><strong>🔮 ルーン魔術</strong><br><small>🪙220 / 長射程・高火力</small></td>
+                                <td>見習い魔術塔<br><small>威力58 / 射程200px</small></td>
+                                <td>古代ルーン魔導塔<br><small>威力110 / 射程235px</small></td>
+                                <td>★大賢者の天雷神塔<br><small>威力280 / 射程295px</small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 敵モンスターの種類 -->
+                <div class="guide-section">
+                    <h4>👾 敵モンスターの種類</h4>
+                    <table class="guide-table">
+                        <thead>
+                            <tr>
+                                <th>タイプ</th>
+                                <th>特徴</th>
+                                <th>出現Wave</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>🟢 通常スライム</strong></td>
+                                <td>標準的な速度と耐久力</td>
+                                <td>Wave 1〜</td>
+                            </tr>
+                            <tr>
+                                <td><strong>🔵 疾風ランナー</strong></td>
+                                <td>足が非常に速いがHPは低め（弓が有効）</td>
+                                <td>Wave 3〜</td>
+                            </tr>
+                            <tr>
+                                <td><strong>🟠 重装甲ゴーレム</strong></td>
+                                <td>移動は遅いがHPが高い（投石・魔術が有効）</td>
+                                <td>Wave 5〜</td>
+                            </tr>
+                            <tr>
+                                <td><strong>🔴 ボスモンスター</strong></td>
+                                <td>超高耐久の巨大ボス（落雷スキルや強化タワーで集中攻撃）</td>
+                                <td>Wave 5毎</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 戦略的リタイア -->
+                <div class="guide-section">
+                    <h4>🏳️ 戦略的リタイア（ここで終了する）</h4>
+                    <p>
+                        「これ以上進むとタワーを増やさざるを得ず効率倍率が落ちる」「ゲームオーバーになりそうだ」と思った時は、ヘッダーの「🏳️ ここで終了する」ボタンでいつでも現在の高倍率スコアを確定してリザルトへ進めます。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- スクリプト読み込み -->
+    <script src="js/audio.js"></script>
+    <script src="js/enemy.js"></script>
+    <script src="js/tower.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
